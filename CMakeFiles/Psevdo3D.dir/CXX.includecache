@@ -1,0 +1,26 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/Users/artem/MyProjects/Psevdo3D/TerminalFPS.cpp
+iostream
+-
+vector
+-
+utility
+-
+algorithm
+-
+chrono
+-
+string
+-
+ncurses.h
+-
+cstring
+-
+

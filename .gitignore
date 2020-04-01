@@ -1,0 +1,5 @@
+*.o
+CMakeCache.txt
+cmake_install.cmake
+Psevdo3D
+Makefile

@@ -1,0 +1,3 @@
+/Users/artem/MyProjects/Psevdo3D/CMakeFiles/rebuild_cache.dir
+/Users/artem/MyProjects/Psevdo3D/CMakeFiles/edit_cache.dir
+/Users/artem/MyProjects/Psevdo3D/CMakeFiles/Psevdo3D.dir
