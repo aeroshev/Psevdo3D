@@ -4,3 +4,4 @@ cmake_install.cmake
 Psevdo3D
 Makefile
 CMakeFiles
+log.txt
