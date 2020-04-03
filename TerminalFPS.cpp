@@ -3,6 +3,7 @@ Link to origin - https://github.com/OneLoneCoder/CommandLineFPS
 */
 
 #include <iostream>
+#include <wchar.h>
 #include <vector>
 #include <utility>
 #include <algorithm>
@@ -10,8 +11,7 @@ Link to origin - https://github.com/OneLoneCoder/CommandLineFPS
 #include <string>
 #include <ncurses.h>
 #include <cmath>
-#include <cstring>
-#include <fstream>
+
 
 int nScreenWidth = 178;
 int nScreenHeight = 52;
@@ -30,8 +30,6 @@ using chclock = std::chrono::system_clock;
 
 int main()
 {
-    // std::ofstream log("log.txt", std::ios_base::ate);
-
     std::string map;
     map += "#########.......";
     map += "#...............";
@@ -84,16 +82,52 @@ int main()
             case 'A':
                 fPlayerAngle -= 50.0f * fElapsedTime;
                 break;
-            // case 'w':
-            //     break;
+            case 'w':
+                fPlayerX += std::sinf(fPlayerAngle) * 15.0f * fElapsedTime;
+                fPlayerY += std::cosf(fPlayerAngle) * 15.0f * fElapsedTime;
+
+                if (map[static_cast<int>(fPlayerY) * nMapWidth + static_cast<int>(fPlayerX)] == '#')
+                {
+                    fPlayerX -= std::sinf(fPlayerAngle) * 15.0f * fElapsedTime;
+                    fPlayerY -= std::cosf(fPlayerAngle) * 15.0f * fElapsedTime; 
+                }
+                break;
+            case 'W':
+                fPlayerX += std::sinf(fPlayerAngle) * 15.0f * fElapsedTime;
+                fPlayerY += std::cosf(fPlayerAngle) * 15.0f * fElapsedTime;
+
+                if (map[static_cast<int>(fPlayerY) * nMapWidth + static_cast<int>(fPlayerX)] == '#')
+                {
+                    fPlayerX -= std::sinf(fPlayerAngle) * 15.0f * fElapsedTime;
+                    fPlayerY -= std::cosf(fPlayerAngle) * 15.0f * fElapsedTime; 
+                }
+                break;
             case 'd':
                 fPlayerAngle += 50.0f * fElapsedTime;
                 break;
             case 'D':
                 fPlayerAngle += 50.0f * fElapsedTime;
                 break;
-            // case 's':
-            //     break;
+            case 's':
+                fPlayerX -= std::sinf(fPlayerAngle) * 15.0f * fElapsedTime;
+                fPlayerY -= std::cosf(fPlayerAngle) * 15.0f * fElapsedTime;
+
+                if (map[static_cast<int>(fPlayerY) * nMapWidth + static_cast<int>(fPlayerX)] == '#')
+                {
+                    fPlayerX += std::sinf(fPlayerAngle) * 15.0f * fElapsedTime;
+                    fPlayerY += std::cosf(fPlayerAngle) * 15.0f * fElapsedTime; 
+                }
+                break;
+            case 'S':
+                fPlayerX -= std::sinf(fPlayerAngle) * 15.0f * fElapsedTime;
+                fPlayerY -= std::cosf(fPlayerAngle) * 15.0f * fElapsedTime;
+
+                if (map[static_cast<int>(fPlayerY) * nMapWidth + static_cast<int>(fPlayerX)] == '#')
+                {
+                    fPlayerX += std::sinf(fPlayerAngle) * 15.0f * fElapsedTime;
+                    fPlayerY += std::cosf(fPlayerAngle) * 15.0f * fElapsedTime; 
+                }
+                break;
             default:
                 break;
         }
@@ -105,6 +139,7 @@ int main()
 
             float fDistanceToWall = 0;
             bool bHitWall = false;
+            bool bBoundary = false;
 
             float fEyeX = std::sinf(fRayAngle);
             float fEyeY = std::cosf(fRayAngle);
@@ -126,6 +161,26 @@ int main()
                     if (map[nTestY * nMapWidth + nTestX] == '#')
                     {
                         bHitWall = true;
+
+                        std::vector<std::pair<float, float> > p;
+
+                        for (int tx = 0; tx < 2; tx++)
+                            for (int ty = 0; ty < 2; ty++)
+                            {
+                                float vy = static_cast<float>(nTestY) + ty - fPlayerY;
+                                float vx = static_cast<float>(nTestX) + tx - fPlayerX;
+                                float distance = std::sqrt(vx * vx + vy * vy);
+                                float dot = (fEyeX * vx / distance) + (fEyeY * vy / distance);
+                                p.push_back(std::make_pair(distance, dot));
+                            }
+
+                        std::sort(p.begin(), p.end(), [](const std::pair<float, float> &left, const std::pair<float, float> &right) {return left.first < right.first;});
+
+                        float fBound = 0.01f;
+                        if (std::acos(p.at(0).second) < fBound)
+                            bBoundary = true;
+                        if (std::acos(p.at(1).second) < fBound)
+                            bBoundary = true;
                     }
                 } 
             }
@@ -145,6 +200,9 @@ int main()
 			else
                 nShade = ' ';
 
+            if (bBoundary)
+                nShade = ' ';
+
             for (int y = 0; y < nScreenHeight; y++)
             {
                 if (y <= nCelling)
@@ -157,12 +215,32 @@ int main()
                 }
                 else
                 {
-                    screen[y * nScreenWidth + x] = ' ';
+                    float b = 1.0f - ((static_cast<float>(y) - nScreenHeight / 2.0f) / (static_cast<float>(nScreenHeight) / 2.0f));
+                    if (b < 0.25)
+                        nShade = '#';
+                    else if (b < 0.5)
+                        nShade = 'x';
+                    else if (b < 0.75)
+                        nShade = '.';
+                    else if (b < 0.9)
+                        nShade = '-';
+                    else
+                        nShade = ' ';
+                    
+                    screen[y * nScreenWidth + x] = nShade;
                 }
                 
             }
 
         }
+        // swprintf(screen, 40, L"X=%3.2f, Y=%3.2f, A=%3.2f FPS=%3.2f ", fPlayerX, fPlayerY, fPlayerAngle, 1.0f / fElapsedTime);
+        for (int nx = 0; nx < nMapWidth; nx++)
+			for (int ny = 0; ny < nMapWidth; ny++)
+			{
+				screen[(ny + 1) * nScreenWidth + nx] = map[ny * nMapWidth + nx];
+			}
+		screen[(static_cast<int>(fPlayerX + 1)) * nScreenWidth + static_cast<int>(fPlayerY)] = 'P';
+
         mvaddwstr(0, 0, screen);
         refresh();
     }
