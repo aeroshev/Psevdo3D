@@ -7,6 +7,6 @@ target_link_libraries(${TARGET} ncurses)
 
 set(CMAKE_CXX_STANDARD 17)
 set(SOURCES TerminalFPS.cpp)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2 -Wall -lncurses")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2 -Wall -D_XOPEN_SOURCE_EXTENDED -lncurses")
 
 add_executable(Psevdo3D ${SOURCES})

@@ -26,6 +26,8 @@ float fDepth = 16.0f;
 uint8_t nMapHeight = 16;
 uint8_t nMapWidth = 16;
 
+using chclock = std::chrono::system_clock;
+
 int main()
 {
     std::ofstream log("log.txt", std::ios_base::ate);
@@ -48,7 +50,7 @@ int main()
     map += "#..............#";
     map += "################";
 
-    // setlocale(LC_ALL, "");
+    setlocale(LC_ALL, "");
     initscr();
     noecho(); 
     curs_set(0); 
@@ -56,27 +58,35 @@ int main()
     cbreak();
     refresh();
 
-    char* screen = new char[nScreenWidth * nScreenHeight];
+    wchar_t* screen = new wchar_t[nScreenWidth * nScreenHeight];
     screen[nScreenWidth * nScreenHeight - 1] = '\0';
     
-    int terminalWidth;
-    int terminalHeight;
-    getmaxyx(stdscr, terminalHeight, terminalWidth);
-    log << terminalHeight << ' ' << terminalWidth << '\n';
+    // int terminalWidth;
+    // int terminalHeight;
+    // getmaxyx(stdscr, terminalHeight, terminalWidth);
+    // log << terminalHeight << ' ' << terminalWidth << '\n';
+
+    auto tp1 = chclock::now();
+    auto tp2 = chclock::now();
 
     //Game Loop
     while(1)
     {
+        tp2 = chclock::now();
+		std::chrono::duration<float> elapsedTime = tp2 - tp1;
+		tp1 = tp2;
+		float fElapsedTime = elapsedTime.count();
+
         int symbol = getch();
         switch (symbol)
         {
             case 'a':
-                fPlayerAngle -= 0.1f;
+                fPlayerAngle -= 50.0f * fElapsedTime;
                 break;
             // case 'w':
             //     break;
             case 'd':
-                fPlayerAngle += 0.1f;
+                fPlayerAngle += 50.0f * fElapsedTime;
                 break;
             // case 's':
             //     break;
@@ -118,6 +128,18 @@ int main()
             int32_t nCelling = static_cast<float>(nScreenHeight / 2.0) - nScreenHeight / (static_cast<float>(fDistanceToWall));
             int32_t nFloor = nScreenHeight - nCelling;
 
+            short nShade = ' ';
+			if (fDistanceToWall <= fDepth / 4.0f)			
+                nShade = 0x2588;
+			else if (fDistanceToWall < fDepth / 3.0f)		
+                nShade = 0x2593;
+			else if (fDistanceToWall < fDepth / 2.0f)		
+                nShade = 0x2592;
+			else if (fDistanceToWall < fDepth)				
+                nShade = 0x2591;
+			else
+                nShade = ' ';
+
             for (int32_t y = 0; y < nScreenHeight; y++)
             {
                 if (y <= nCelling)
@@ -126,7 +148,7 @@ int main()
                 }
                 else if (y > nCelling && y <= nFloor)
                 {
-                    screen[y * nScreenWidth + x] = '#';
+                    screen[y * nScreenWidth + x] = static_cast<wchar_t>(nShade);
                 }
                 else
                 {
@@ -136,7 +158,7 @@ int main()
             }
 
         }
-        mvaddstr(0, 0, screen);
+        mvaddwstr(0, 0, screen);
         refresh();
     }
 
