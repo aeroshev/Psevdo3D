@@ -13,8 +13,8 @@ Link to origin - https://github.com/OneLoneCoder/CommandLineFPS
 #include <cstring>
 #include <fstream>
 
-uint8_t nScreenWidth = 178;
-uint8_t nScreenHeight = 52;
+int nScreenWidth = 178;
+int nScreenHeight = 52;
 
 float fPlayerX = 8.0f;
 float fPlayerY = 8.0f;
@@ -23,14 +23,14 @@ float fPlayerAngle = 0.0f;
 float fFOV = 3.1459 / 4.0;
 float fDepth = 16.0f;
 
-uint8_t nMapHeight = 16;
-uint8_t nMapWidth = 16;
+int nMapHeight = 16;
+int nMapWidth = 16;
 
 using chclock = std::chrono::system_clock;
 
 int main()
 {
-    std::ofstream log("log.txt", std::ios_base::ate);
+    // std::ofstream log("log.txt", std::ios_base::ate);
 
     std::string map;
     map += "#########.......";
@@ -60,11 +60,8 @@ int main()
 
     wchar_t* screen = new wchar_t[nScreenWidth * nScreenHeight];
     screen[nScreenWidth * nScreenHeight - 1] = '\0';
-    
-    // int terminalWidth;
-    // int terminalHeight;
-    // getmaxyx(stdscr, terminalHeight, terminalWidth);
-    // log << terminalHeight << ' ' << terminalWidth << '\n';
+
+    getmaxyx(stdscr, nScreenHeight, nScreenWidth);
 
     auto tp1 = chclock::now();
     auto tp2 = chclock::now();
@@ -77,15 +74,22 @@ int main()
 		tp1 = tp2;
 		float fElapsedTime = elapsedTime.count();
 
+        //Control
         int symbol = getch();
         switch (symbol)
         {
             case 'a':
                 fPlayerAngle -= 50.0f * fElapsedTime;
                 break;
+            case 'A':
+                fPlayerAngle -= 50.0f * fElapsedTime;
+                break;
             // case 'w':
             //     break;
             case 'd':
+                fPlayerAngle += 50.0f * fElapsedTime;
+                break;
+            case 'D':
                 fPlayerAngle += 50.0f * fElapsedTime;
                 break;
             // case 's':
@@ -94,7 +98,8 @@ int main()
                 break;
         }
 
-        for (uint8_t x = 0; x < nScreenWidth; x++)
+        //Render image
+        for (int x = 0; x < nScreenWidth; x++)
         {
             float fRayAngle = (fPlayerAngle - fFOV / 2.0f) + (static_cast<float>(x) / static_cast<float>(nScreenWidth)) * fFOV;
 
@@ -108,8 +113,8 @@ int main()
             {
                 fDistanceToWall += 0.1f;
 
-                int32_t nTestX = static_cast<int32_t>(fPlayerX + fEyeX * fDistanceToWall);
-                int32_t nTestY = static_cast<int32_t>(fPlayerY + fEyeY * fDistanceToWall);
+                int nTestX = static_cast<int>(fPlayerX + fEyeX * fDistanceToWall);
+                int nTestY = static_cast<int>(fPlayerY + fEyeY * fDistanceToWall);
 
                 if (nTestX < 0 || nTestX >= nMapWidth || nTestY < 0 || nTestY >= nMapHeight)
                 {
@@ -125,8 +130,8 @@ int main()
                 } 
             }
 
-            int32_t nCelling = static_cast<float>(nScreenHeight / 2.0) - nScreenHeight / (static_cast<float>(fDistanceToWall));
-            int32_t nFloor = nScreenHeight - nCelling;
+            int nCelling = static_cast<float>(nScreenHeight / 2.0) - nScreenHeight / (static_cast<float>(fDistanceToWall));
+            int nFloor = nScreenHeight - nCelling;
 
             short nShade = ' ';
 			if (fDistanceToWall <= fDepth / 4.0f)			
@@ -140,7 +145,7 @@ int main()
 			else
                 nShade = ' ';
 
-            for (int32_t y = 0; y < nScreenHeight; y++)
+            for (int y = 0; y < nScreenHeight; y++)
             {
                 if (y <= nCelling)
                 {
