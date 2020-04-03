@@ -13,8 +13,8 @@ Link to origin - https://github.com/OneLoneCoder/CommandLineFPS
 #include <cstring>
 #include <fstream>
 
-uint8_t nScreenWidth = 120;
-uint8_t nScreenHeight = 40;
+uint8_t nScreenWidth = 178;
+uint8_t nScreenHeight = 52;
 
 float fPlayerX = 8.0f;
 float fPlayerY = 8.0f;
@@ -28,7 +28,7 @@ uint8_t nMapWidth = 16;
 
 int main()
 {
-    std::ofstream log("log.txt", std::ios_base::trunc);
+    std::ofstream log("log.txt", std::ios_base::ate);
 
     std::string map;
     map += "#########.......";
@@ -48,25 +48,42 @@ int main()
     map += "#..............#";
     map += "################";
 
-    initscr(); //инициализируем библиотеку
-    noecho(); //Не печатать на экране то, что набирает пользователь на клавиатуре
-    curs_set(0); //Убрать курсор
-    keypad(stdscr, TRUE); //Активировать специальные клавиши клавиатуры (например, если хотим использовать горячие клавиши)
-    use_default_colors(); //Фон stscr будет "прозрачным"
+    // setlocale(LC_ALL, "");
+    initscr();
+    noecho(); 
+    curs_set(0); 
+    nodelay(stdscr, TRUE);
+    cbreak();
     refresh();
 
     char* screen = new char[nScreenWidth * nScreenHeight];
     screen[nScreenWidth * nScreenHeight - 1] = '\0';
-    WINDOW *win = newwin(nScreenHeight, nScreenWidth, 0, 0);
-    nodelay(win, TRUE);
-    wrefresh(win);
-    refresh();
+    
+    int terminalWidth;
+    int terminalHeight;
+    getmaxyx(stdscr, terminalHeight, terminalWidth);
+    log << terminalHeight << ' ' << terminalWidth << '\n';
 
-    int i = 1;
     //Game Loop
-    while(i--)
+    while(1)
     {
-        log << "Loop for x" << '\n';
+        int symbol = getch();
+        switch (symbol)
+        {
+            case 'a':
+                fPlayerAngle -= 0.1f;
+                break;
+            // case 'w':
+            //     break;
+            case 'd':
+                fPlayerAngle += 0.1f;
+                break;
+            // case 's':
+            //     break;
+            default:
+                break;
+        }
+
         for (uint8_t x = 0; x < nScreenWidth; x++)
         {
             float fRayAngle = (fPlayerAngle - fFOV / 2.0f) + (static_cast<float>(x) / static_cast<float>(nScreenWidth)) * fFOV;
@@ -77,7 +94,6 @@ int main()
             float fEyeX = std::sinf(fRayAngle);
             float fEyeY = std::cosf(fRayAngle);
 
-            log << "BitWall" << '\n';
             while(!bHitWall && fDistanceToWall < fDepth)
             {
                 fDistanceToWall += 0.1f;
@@ -101,43 +117,30 @@ int main()
 
             int32_t nCelling = static_cast<float>(nScreenHeight / 2.0) - nScreenHeight / (static_cast<float>(fDistanceToWall));
             int32_t nFloor = nScreenHeight - nCelling;
-            log << "Distance " << fDistanceToWall << '\n'; 
-            log << "Celling " << nCelling << '\n';
-            log << "Floor " << nFloor << '\n';
 
-            log << "Y for loop" << '\n';
             for (int32_t y = 0; y < nScreenHeight; y++)
             {
-                //TODO
                 if (y <= nCelling)
                 {
                     screen[y * nScreenWidth + x] = ' ';
-                    log << "y <= nCelling " << screen[y * nScreenWidth + x] << '\n';
                 }
                 else if (y > nCelling && y <= nFloor)
                 {
                     screen[y * nScreenWidth + x] = '#';
-                    log << "y > nCelling && y <= nFloor " << screen[y * nScreenWidth + x] << '\n';
                 }
                 else
                 {
                     screen[y * nScreenWidth + x] = ' ';
-                    log << "y > nFloor " << screen[y * nScreenWidth + x] << '\n';
                 }
                 
             }
 
         }
-        std::string test = "#####################################################################################################################";
-        log << screen << '\n';
-        waddstr(win, screen);
-        wrefresh(win);
+        mvaddstr(0, 0, screen);
         refresh();
     }
-    getch();
-                         // Ожидание нажатия какой-либо клавиши пользователем
-    delwin(win);
-    endwin();                    // Выход из curses-режима. Обязательная команда.
+
+    endwin();
     free(screen);
     return 0;
 }
