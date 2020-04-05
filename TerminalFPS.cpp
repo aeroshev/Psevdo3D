@@ -12,17 +12,19 @@ Link to origin - https://github.com/OneLoneCoder/CommandLineFPS
 #include <ncurses.h>
 #include <cmath>
 
-
+//Terminal screen size
 int nScreenWidth = 178;
 int nScreenHeight = 52;
 
+//Start coordinate player
 float fPlayerX = 8.0f;
 float fPlayerY = 8.0f;
+//Angle of line view
 float fPlayerAngle = 0.0f;
 //Field of view
 float fFOV = 3.1459 / 4.0;
 float fDepth = 16.0f;
-
+//Map size
 int nMapHeight = 16;
 int nMapWidth = 16;
 
@@ -48,6 +50,7 @@ int main()
     map += "#..............#";
     map += "################";
 
+    //Start work with ncurses
     setlocale(LC_ALL, "");
     initscr();
     noecho(); 
@@ -55,14 +58,17 @@ int main()
     nodelay(stdscr, TRUE);
     cbreak();
     refresh();
-
+    //Data screen which is output on terminal
     wchar_t* screen = new wchar_t[nScreenWidth * nScreenHeight];
     screen[nScreenWidth * nScreenHeight - 1] = '\0';
-
+    //Auto fit
     getmaxyx(stdscr, nScreenHeight, nScreenWidth);
 
     auto tp1 = chclock::now();
     auto tp2 = chclock::now();
+
+    float fSpeedMove = 15.0f;
+    float fSpeedRotate = 50.0f;
 
     //Game Loop
     while(1)
@@ -77,55 +83,55 @@ int main()
         switch (symbol)
         {
             case 'a':
-                fPlayerAngle -= 50.0f * fElapsedTime;
+                fPlayerAngle -= fSpeedRotate * fElapsedTime;
                 break;
             case 'A':
-                fPlayerAngle -= 50.0f * fElapsedTime;
+                fPlayerAngle -= fSpeedRotate * fElapsedTime;
                 break;
             case 'w':
-                fPlayerX += std::sinf(fPlayerAngle) * 15.0f * fElapsedTime;
-                fPlayerY += std::cosf(fPlayerAngle) * 15.0f * fElapsedTime;
+                fPlayerX += std::sinf(fPlayerAngle) * fSpeedMove * fElapsedTime;
+                fPlayerY += std::cosf(fPlayerAngle) * fSpeedMove * fElapsedTime;
 
                 if (map[static_cast<int>(fPlayerY) * nMapWidth + static_cast<int>(fPlayerX)] == '#')
                 {
-                    fPlayerX -= std::sinf(fPlayerAngle) * 15.0f * fElapsedTime;
-                    fPlayerY -= std::cosf(fPlayerAngle) * 15.0f * fElapsedTime; 
+                    fPlayerX -= std::sinf(fPlayerAngle) * fSpeedMove * fElapsedTime;
+                    fPlayerY -= std::cosf(fPlayerAngle) * fSpeedMove * fElapsedTime; 
                 }
                 break;
             case 'W':
-                fPlayerX += std::sinf(fPlayerAngle) * 15.0f * fElapsedTime;
-                fPlayerY += std::cosf(fPlayerAngle) * 15.0f * fElapsedTime;
+                fPlayerX += std::sinf(fPlayerAngle) * fSpeedMove * fElapsedTime;
+                fPlayerY += std::cosf(fPlayerAngle) * fSpeedMove * fElapsedTime;
 
                 if (map[static_cast<int>(fPlayerY) * nMapWidth + static_cast<int>(fPlayerX)] == '#')
                 {
-                    fPlayerX -= std::sinf(fPlayerAngle) * 15.0f * fElapsedTime;
-                    fPlayerY -= std::cosf(fPlayerAngle) * 15.0f * fElapsedTime; 
+                    fPlayerX -= std::sinf(fPlayerAngle) * fSpeedMove * fElapsedTime;
+                    fPlayerY -= std::cosf(fPlayerAngle) * fSpeedMove * fElapsedTime; 
                 }
                 break;
             case 'd':
-                fPlayerAngle += 50.0f * fElapsedTime;
+                fPlayerAngle += fSpeedRotate * fElapsedTime;
                 break;
             case 'D':
-                fPlayerAngle += 50.0f * fElapsedTime;
+                fPlayerAngle += fSpeedRotate * fElapsedTime;
                 break;
             case 's':
-                fPlayerX -= std::sinf(fPlayerAngle) * 15.0f * fElapsedTime;
-                fPlayerY -= std::cosf(fPlayerAngle) * 15.0f * fElapsedTime;
+                fPlayerX -= std::sinf(fPlayerAngle) * fSpeedMove * fElapsedTime;
+                fPlayerY -= std::cosf(fPlayerAngle) * fSpeedMove * fElapsedTime;
 
                 if (map[static_cast<int>(fPlayerY) * nMapWidth + static_cast<int>(fPlayerX)] == '#')
                 {
-                    fPlayerX += std::sinf(fPlayerAngle) * 15.0f * fElapsedTime;
-                    fPlayerY += std::cosf(fPlayerAngle) * 15.0f * fElapsedTime; 
+                    fPlayerX += std::sinf(fPlayerAngle) * fSpeedMove * fElapsedTime;
+                    fPlayerY += std::cosf(fPlayerAngle) * fSpeedMove * fElapsedTime; 
                 }
                 break;
             case 'S':
-                fPlayerX -= std::sinf(fPlayerAngle) * 15.0f * fElapsedTime;
-                fPlayerY -= std::cosf(fPlayerAngle) * 15.0f * fElapsedTime;
+                fPlayerX -= std::sinf(fPlayerAngle) * fSpeedMove * fElapsedTime;
+                fPlayerY -= std::cosf(fPlayerAngle) * fSpeedMove * fElapsedTime;
 
                 if (map[static_cast<int>(fPlayerY) * nMapWidth + static_cast<int>(fPlayerX)] == '#')
                 {
-                    fPlayerX += std::sinf(fPlayerAngle) * 15.0f * fElapsedTime;
-                    fPlayerY += std::cosf(fPlayerAngle) * 15.0f * fElapsedTime; 
+                    fPlayerX += std::sinf(fPlayerAngle) * fSpeedMove * fElapsedTime;
+                    fPlayerY += std::cosf(fPlayerAngle) * fSpeedMove * fElapsedTime; 
                 }
                 break;
             default:
@@ -187,19 +193,20 @@ int main()
 
             int nCelling = static_cast<float>(nScreenHeight / 2.0) - nScreenHeight / (static_cast<float>(fDistanceToWall));
             int nFloor = nScreenHeight - nCelling;
-
+            //Render image wall in relation of distance
             short nShade = ' ';
 			if (fDistanceToWall <= fDepth / 4.0f)			
-                nShade = 0x2588;
+                nShade = 0x2588; //Very close
 			else if (fDistanceToWall < fDepth / 3.0f)		
-                nShade = 0x2593;
+                nShade = 0x2593; //Close
 			else if (fDistanceToWall < fDepth / 2.0f)		
-                nShade = 0x2592;
+                nShade = 0x2592; //Medium
 			else if (fDistanceToWall < fDepth)				
-                nShade = 0x2591;
+                nShade = 0x2591; //Far
 			else
-                nShade = ' ';
+                nShade = ' '; //Not visible
 
+            //Edge of wall
             if (bBoundary)
                 nShade = ' ';
 
@@ -215,6 +222,7 @@ int main()
                 }
                 else
                 {
+                    //Floar render image in relation of distance
                     float b = 1.0f - ((static_cast<float>(y) - nScreenHeight / 2.0f) / (static_cast<float>(nScreenHeight) / 2.0f));
                     if (b < 0.25)
                         nShade = '#';
@@ -234,6 +242,7 @@ int main()
 
         }
         // swprintf(screen, 40, L"X=%3.2f, Y=%3.2f, A=%3.2f FPS=%3.2f ", fPlayerX, fPlayerY, fPlayerAngle, 1.0f / fElapsedTime);
+        // Map render
         for (int nx = 0; nx < nMapWidth; nx++)
 			for (int ny = 0; ny < nMapWidth; ny++)
 			{
